@@ -16,7 +16,7 @@ from google.colab import widgets
 from google.colab import output
 
 from bokeh.palettes import Spectral10, brewer
-from bokeh.models import ColumnDataSource
+from bokeh.models import ColumnDataSource, LabelSet
 from bokeh.models.tools import HoverTool
 from bokeh.plotting import figure, show
 from bokeh.layouts import widgetbox
@@ -139,3 +139,31 @@ def read_csvs_in_folder(source_folder):
     dfs = [pd.read_csv(file_) for file_ in files]
     return pd.concat(dfs)        
 
+def scatter_plot(data_to_display, title, xlabel, ylabel, hover_tooltips, x, y, text):
+    def scatter_plot_helper(p, df, x, y, marker, fill_color, text):
+        source = ColumnDataSource(df)
+        p.scatter(
+            x=x, y=y, marker=marker, source=source,
+            line_color=fill_color, fill_color=fill_color, fill_alpha=0.5, size="Size")
+        
+        p.add_layout(
+            LabelSet(
+                x=x, y=y, text=text, 
+                level='glyph',text_font_size='9pt',
+                text_color=fill_color,
+                x_offset=7, y_offset=7, 
+                source=source, render_mode='canvas')
+        )
+    p = figure(plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
+    p.add_tools(HoverTool(tooltips=hover_tooltips))
+
+    for (data_, figure_, color_) in data_to_display:
+        scatter_plot_helper(p, data_, x, y, figure_, color_, text)
+
+    p.legend.location = "top_left"
+    p.title.text = title
+    p.xaxis.axis_label = xlabel
+    p.yaxis.axis_label = ylabel
+    p.left[0].formatter.use_scientific = False
+    p.below[0].formatter.use_scientific = False
+    show(p)
