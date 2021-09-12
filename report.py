@@ -29,8 +29,8 @@ from bokeh.palettes import Dark2_5 as palette
 import itertools 
 
 FIG_SIZE = (17, 8)
-PLOT_HEIGHT = 450
-PLOT_WIDTH = 1100
+PLOT_HEIGHT = 550
+PLOT_WIDTH = 1200
 FONTSIZE = 14
 
 #@title Helper functions
