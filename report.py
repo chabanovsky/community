@@ -63,7 +63,7 @@ def plot_matplotlib_(df, title, xlabel, ylabel, stacked):
     plt.title(title, fontsize=FONTSIZE+2)
     plt.show()
 
-def plot_bokeh_(df, title, xlabel, ylabel, stacked):
+def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table):
     tmp = df.reset_index().fillna(0)
     source = ColumnDataSource(tmp)
     p = figure(x_axis_type="datetime", plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
@@ -109,28 +109,29 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked):
 
     show(p)
 
-    columns = list()
-    for index, column in enumerate(list(tmp.columns.values)):
-        if column == df.index.name: 
-            columns.append(
-                TableColumn(field=column, title=column, formatter=DateFormatter())
-            ) 
-        else:
-            columns.append(
-                TableColumn(field=column, title=column)
-            )
+    if need_table:
+        columns = list()
+        for index, column in enumerate(list(tmp.columns.values)):
+            if column == df.index.name: 
+                columns.append(
+                    TableColumn(field=column, title=column, formatter=DateFormatter())
+                ) 
+            else:
+                columns.append(
+                    TableColumn(field=column, title=column)
+                )
 
-    data_table = DataTable(source=source, columns=columns, width=PLOT_WIDTH, height=PLOT_HEIGHT)
-    show(widgetbox(data_table))
+        data_table = DataTable(source=source, columns=columns, width=PLOT_WIDTH, height=PLOT_HEIGHT)
+        show(widgetbox(data_table))
 
-    display(create_download_link(tmp))
+        display(create_download_link(tmp))
 
 PLOT_MATPLOTLIB=False
-def plot_df(df, title, xlabel, ylabel, stacked=False):
+def plot_df(df, title, xlabel, ylabel, stacked=False, need_table=True):
     if PLOT_MATPLOTLIB:
         plot_matplotlib_(df, title, xlabel, ylabel, stacked)
     else:
-        plot_bokeh_(df, title, xlabel, ylabel, stacked)
+        plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table)
 
 def read_csvs_in_folder(source_folder):
     files = [os.path.join(source_folder, f)  for f in os.listdir(source_folder) if re.match(r'.*.csv', f)] 
