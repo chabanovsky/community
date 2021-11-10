@@ -90,7 +90,7 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table):
           elif index < 12:
               color = Set3_12[index]
           else:
-              color = Spectral10[len(Spectral10) % index]
+              color = Spectral10[(len(Spectral10) - 1) % index]
           p.line(x=df.index.name, y=column, line_width=2, source=source, color=color, legend=legend)
           tooltips.append(
               (legend, "@" + column + ("{0.00}" if tmp.at[0, column] < 1 else "") + " | @" + df.index.name + "{%F}")
