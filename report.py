@@ -15,7 +15,7 @@ from google.colab import drive
 from google.colab import widgets
 from google.colab import output
 
-from bokeh.palettes import Spectral10, brewer
+from bokeh.palettes import Spectral10, brewer, Set3_12
 from bokeh.models import ColumnDataSource, LabelSet
 from bokeh.models.tools import HoverTool
 from bokeh.plotting import figure, show
