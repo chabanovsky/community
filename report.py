@@ -11,9 +11,10 @@ import base64
 import matplotlib.pyplot as plt
 from IPython.display import HTML
 
-from google.colab import drive
-from google.colab import widgets
-from google.colab import output
+if '__DEFINE__' in globals() and "colab" in __DEFINE__:
+    from google.colab import drive
+    from google.colab import widgets
+    from google.colab import output
 
 from bokeh.palettes import Spectral10, brewer, Set3_12
 from bokeh.models import ColumnDataSource, LabelSet
