@@ -82,3 +82,6 @@ def split_into_buckets(df, groupby_field='CreationUserId', count_field='PostId',
             
         
     return buckets
+
+def split_by_year(df, date_field='CreationDate'):
+    return {y: df[df[date_field].dt.year == y] for y in df[date_field].dt.year.unique()}        
