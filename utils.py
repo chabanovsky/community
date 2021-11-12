@@ -38,7 +38,7 @@ def display_buckets(buckets, freq, group_field='CrationDate', count_field='PostI
     data = []
     for index, bucket in enumerate(buckets):
         tmp = bucket['bucket'].groupby(pd.Grouper(key=group_field, freq=freq))
-        tmp = tmp[count_field].unique() if unique else tmp[count_field].count()
+        tmp = tmp[count_field].nunique() if unique else tmp[count_field].count()
         tmp = tmp.rename(
             "Bucket %d, [%d; %d], total %d" % (
                 index, bucket['low'], bucket['hight'], bucket['total']
