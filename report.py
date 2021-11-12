@@ -9,14 +9,7 @@ import numpy as np
 
 import base64
 import matplotlib.pyplot as plt
-from IPython.display import HTML
-
-if '__DEFINE__' in globals() and "colab" in __DEFINE__:
-    from google.colab import drive
-    from google.colab import widgets
-    from google.colab import output
-else:
-    import ipywidgets as widgets    
+from IPython.display import HTML    
 
 from bokeh.palettes import Spectral10, brewer, Set3_12
 from bokeh.models import ColumnDataSource, LabelSet
@@ -48,6 +41,7 @@ def create_download_link(df, title = "Download CSV file", filename = "data.csv")
     return HTML(html)
 
 if '__DEFINE__' in globals() and "colab" in __DEFINE__:
+    from google.colab import widgets
     def tabbar(params):
         tb = widgets.TabBar(list(params.keys()))
         for index, key in enumerate(params.keys()):
@@ -55,6 +49,7 @@ if '__DEFINE__' in globals() and "colab" in __DEFINE__:
                 f, f_args = params[key]
                 f(*f_args)
 else:
+    import ipywidgets as widgets
     def tabbar(params):
         tabs = [widgets.Output() for _ in params.keys()]
         bar = widgets.Tab(children = tabs)
