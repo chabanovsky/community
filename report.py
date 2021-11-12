@@ -15,6 +15,8 @@ if '__DEFINE__' in globals() and "colab" in __DEFINE__:
     from google.colab import drive
     from google.colab import widgets
     from google.colab import output
+else:
+    import ipywidgets as widgets    
 
 from bokeh.palettes import Spectral10, brewer, Set3_12
 from bokeh.models import ColumnDataSource, LabelSet
@@ -45,12 +47,26 @@ def create_download_link(df, title = "Download CSV file", filename = "data.csv")
     html = html.format(payload=payload, title=title, filename=filename)
     return HTML(html)
 
-def tabbar(params):
-    tb = widgets.TabBar(list(params.keys()))
-    for index, key in enumerate(params.keys()):
-        with tb.output_to(index):
-            f, f_args = params[key]
-            f(*f_args)
+if '__DEFINE__' in globals() and "colab" in __DEFINE__:
+    def tabbar(params):
+        tb = widgets.TabBar(list(params.keys()))
+        for index, key in enumerate(params.keys()):
+            with tb.output_to(index):
+                f, f_args = params[key]
+                f(*f_args)
+else:
+    def tabbar(params):
+        tabs = [widgets.Output() for _ in params.keys()]
+        bar = widgets.Tab(children = tabs)
+        for index, key in enumerate(params.keys()):
+            bar.set_title(index, key)
+        display(bar)
+        
+        for index, key in enumerate(params.keys()):
+            with tabs[index]:
+                f, f_args = params[key]
+                f(*f_args)            
+
 
 def plot_matplotlib_(df, title, xlabel, ylabel, stacked):
     alpha = 0.5
