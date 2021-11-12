@@ -34,14 +34,14 @@ def date_moving_avarage(df, date_field, group_field, period=29, day_threshold=1)
         "Value": result_values
     })     
 
-def display_buckets(buckets, freq, group_field='CrationDate', count_field='PostId'):
+def display_buckets(buckets, freq, group_field='CrationDate', count_field='PostId', short_name=False):
     data = []
     for index, bucket in enumerate(buckets):
         data.append(
             bucket['bucket'].groupby(pd.Grouper(key=group_field, freq=freq))[count_field].count().rename(
                 "Bucket %d, [%d; %d], total %d" % (
                     index, bucket['low'], bucket['hight'], bucket['total']
-                )
+                ) if short_name else "Bucket_%d" % (index)
             )
         )
     return data
