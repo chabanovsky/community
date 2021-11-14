@@ -69,11 +69,11 @@ def split_into_buckets(df, groupby_field='CreationUserId', count_field='PostId',
         tmp_df = df.groupby([groupby_field])[count_field].count()
         q75 = tmp_df.quantile(0.75)
         q25 = tmp_df.quantile(0.25)
-        iqr = q75 - q25
-        if pd.isnull(iqr):
+        if np.isnan(q75) or np.isnan(q25):
             add_bucket(buckets, df, threshold_low, -1, index, need_report)
             return buckets
 
+        iqr = q75 - q25
         threshold_hight = int(round(q75 + 1.5 * iqr))
         tmp_df = tmp_df[(tmp_df >= threshold_low) & (tmp_df <= threshold_hight)]
         
