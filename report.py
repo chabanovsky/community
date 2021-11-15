@@ -75,7 +75,7 @@ def plot_matplotlib_(df, title, xlabel, ylabel, stacked):
     plt.title(title, fontsize=FONTSIZE+2)
     plt.show()
 
-def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table):
+def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_left"):
     tmp = df.reset_index().fillna(0)
     source = ColumnDataSource(tmp)
     p = figure(x_axis_type="datetime", plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
@@ -109,7 +109,7 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table):
           )
 
     p.legend.click_policy='hide'
-    p.legend.location = "top_left"
+    p.legend.location = location
     p.title.text = title
     p.xaxis.axis_label = xlabel
     p.yaxis.axis_label = ylabel
@@ -139,11 +139,11 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table):
         display(create_download_link(tmp))
 
 PLOT_MATPLOTLIB=False
-def plot_df(df, title, xlabel, ylabel, stacked=False, need_table=True):
+def plot_df(df, title, xlabel, ylabel, stacked=False, need_table=True, location="top_left"):
     if PLOT_MATPLOTLIB:
         plot_matplotlib_(df, title, xlabel, ylabel, stacked)
     else:
-        plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table)
+        plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location)
 
 def read_csvs_in_folder(source_folder):
     files = [os.path.join(source_folder, f)  for f in os.listdir(source_folder) if re.match(r'.*.csv', f)] 
