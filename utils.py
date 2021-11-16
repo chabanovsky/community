@@ -101,23 +101,22 @@ def test_further_participation(success, unsuccess, test_field="Outcome", test_va
     t_succ = s_yes + s_no
     t_uns  = u_yes + u_no
 
-    crosstbl = pd.DataFrame([[s_yes,  s_no, t_succ], 
-                             [u_yes,  u_no, t_uns],
-                             [t_yes,  t_no, total]], 
-                            columns=["Continued", "Left", "Total"], 
-                            index=["SuccessfulPost", "UnsuccessfulPost", "Total"])
+    crosstbl = pd.DataFrame(data={
+            "SuccessfulPost": [s_yes,  s_no, t_succ],
+            "UnsuccessfulPost": [u_yes,  u_no, t_uns],
+            "Total": [t_yes,  t_no, total]
+        }, index=["Continued", "Left", "Total"])
 
     exp_s_yes = t_succ * t_yes / total
     exp_u_yes = t_uns  * t_yes / total
     exp_s_no  = t_succ * t_no  / total
     exp_u_no  = t_uns  * t_no  / total
 
-    expectedtbl = pd.DataFrame([
-                             [exp_s_yes, exp_s_no, exp_s_yes+exp_s_no], 
-                             [exp_u_yes, exp_u_no, exp_u_yes+exp_u_no],
-                             [exp_s_yes+exp_u_yes, exp_s_no+exp_u_no, (exp_s_yes+exp_u_yes)+(exp_s_no+exp_u_no)]], 
-                            columns=["Continued", "Left", "Total"], 
-                            index=["SuccessfulPost", "UnsuccessfulPost", "Total"])
+    expectedtbl = pd.DataFrame(data={
+           "SuccessfulPost": [exp_s_yes, exp_s_no, exp_s_yes+exp_s_no],
+           "UnsuccessfulPost": [exp_u_yes, exp_u_no, exp_u_yes+exp_u_no],
+           "Total": [exp_s_yes+exp_u_yes, exp_s_no+exp_u_no, (exp_s_yes+exp_u_yes)+(exp_s_no+exp_u_no)]
+        }, index=["Continued", "Left", "Total"])
 
     f_obs = [s_yes, u_yes, s_no, u_no]
     f_exp = [exp_s_yes, exp_u_yes, exp_s_no,  exp_u_no] 
