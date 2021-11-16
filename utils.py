@@ -3,6 +3,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
 
+from scipy.stats import chisquare
+
 def np_dt_to_timedelta(dt64):
     # https://stackoverflow.com/a/13704307/564240
     ts = (dt64 - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
@@ -88,3 +90,36 @@ def split_into_buckets(df, groupby_field='CreationUserId', count_field='PostId',
 
 def split_by_year(df, date_field='CreationDate'):
     return {y: df[df[date_field].dt.year == y] for y in df[date_field].dt.year.unique()}        
+
+def test_further_participation(success, unsuccess, test_field="Outcome", test_val_yes=1):
+    s_yes, s_no = len(success[success[test_field] == test_val_yes].index), len(success[success[test_field] != test_val_yes].index)
+    u_yes, u_no = len(unsuccess[unsuccess[test_field] == test_val_yes].index), len(unsuccess[unsuccess[test_field] != test_val_yes].index)
+
+    total  = (s_yes + u_yes) + (s_no + u_no)
+    t_yes  = s_yes + u_yes
+    t_no   = s_no + u_no
+    t_succ = s_yes + s_no
+    t_uns  = u_yes + u_no
+
+    crosstbl = pd.DataFrame([[s_yes,  s_no, t_succ], 
+                             [u_yes,  u_no, t_uns],
+                             [t_yes,  t_no, total]], 
+                            columns=["Continued", "Left", "Total"], 
+                            index=["SuccessfulPost", "UnsuccessfulPost", "Total"])
+
+    exp_s_yes = t_succ * t_yes / total
+    exp_u_yes = t_uns  * t_yes / total
+    exp_s_no  = t_succ * t_no  / total
+    exp_u_no  = t_uns  * t_no  / total
+
+    expectedtbl = pd.DataFrame([
+                             [exp_s_yes, exp_s_no, exp_s_yes+exp_s_no], 
+                             [exp_u_yes, exp_u_no, exp_u_yes+exp_u_no],
+                             [exp_s_yes+exp_u_yes, exp_s_no+exp_u_no, (exp_s_yes+exp_u_yes)+(exp_s_no+exp_u_no)]], 
+                            columns=["Continued", "Left", "Total"], 
+                            index=["SuccessfulPost", "UnsuccessfulPost", "Total"])
+
+    f_obs = [s_yes, u_yes, s_no, u_no]
+    f_exp = [exp_s_yes, exp_u_yes, exp_s_no,  exp_u_no] 
+
+    return chisquare(f_obs, f_exp=f_exp, ddof=1), crosstbl, expectedtbl
