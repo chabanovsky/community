@@ -7,6 +7,8 @@ import fileinput
 import pandas as pd
 import numpy as np
 
+from pandas.api.types import is_datetime64_any_dtype as is_datetime
+
 import base64
 import matplotlib.pyplot as plt
 from IPython.display import HTML    
@@ -78,7 +80,11 @@ def plot_matplotlib_(df, title, xlabel, ylabel, stacked):
 def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_left"):
     tmp = df.reset_index().fillna(0)
     source = ColumnDataSource(tmp)
-    p = figure(x_axis_type="datetime", plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
+    # TBD: add a check of the type of the index
+    if is_datetime(df.index):
+        p = figure(x_axis_type="datetime", plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
+    else:
+        p = figure(plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH)
 
     tooltips = list()
     if stacked:
