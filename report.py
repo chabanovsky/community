@@ -99,20 +99,22 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_le
         p.legend.items.reverse()
         tooltips = [(column, "@" + column) for column in clmns]
     else:
-      for index, column in enumerate(list(tmp.columns.values)):
-          if column == df.index.name: 
-              continue
-          legend=column + " "    
-          if index < 10:
-              color = Spectral10[index]
-          elif index < 12:
-              color = Set3_12[index]
-          else:
-              color = Spectral10[(len(Spectral10) - 1) % index]
-          p.line(x=df.index.name, y=column, line_width=2, source=source, color=color, legend=legend)
-          tooltips.append(
-              (legend, "@" + column + ("{0.00}" if tmp.at[0, column] < 1 else "") + " | @" + df.index.name + "{%F}")
-          )
+        for index, column in enumerate(list(tmp.columns.values)):
+            if column == df.index.name: 
+                continue
+            legend=column + " "    
+            if index < 10:
+                color = Spectral10[index]
+            elif index < 12:
+                color = Set3_12[index]
+            else:
+                color = Spectral10[(len(Spectral10) - 1) % index]
+            p.line(x=df.index.name, y=column, line_width=2, source=source, color=color, legend=legend)
+            tooltips.append(
+                (
+                  legend, "@" + column + ("{0.00}" if tmp.at[0, column] < 1 else "") + " | @" + df.index.name + ("{%F}" if is_datetime(df.index) else "")
+                )
+            )
 
     p.legend.click_policy='hide'
     p.legend.location = location
