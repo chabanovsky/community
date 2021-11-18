@@ -122,7 +122,10 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_le
     p.y_range.start = 0    
     p.left[0].formatter.use_scientific = False
 
-    hover = HoverTool(tooltips=tooltips, formatters={'@' + df.index.name: 'datetime'})
+    if is_datetime(df.index):
+        hover = HoverTool(tooltips=tooltips, formatters={'@' + df.index.name: 'datetime'})
+    else:
+        hover = HoverTool(tooltips=tooltips, formatters={'@' + df.index.name})
     p.add_tools(hover)
 
     show(p)
