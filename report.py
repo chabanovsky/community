@@ -42,7 +42,7 @@ def create_download_link(df, title = "Download CSV file", filename = "data.csv")
     html = html.format(payload=payload, title=title, filename=filename)
     return HTML(html)
 
-if '__DEFINE__' in globals() and "colab" in __DEFINE__:
+if 'DEFINE' in globals() and "colab" in DEFINE:
     from google.colab import widgets
     def tabbar(params):
         tb = widgets.TabBar(list(params.keys()))
