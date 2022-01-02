@@ -78,7 +78,7 @@ def plot_matplotlib_(df, title, xlabel, ylabel, stacked):
     plt.show()
 
 def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_left"):
-    tmp = df.reset_index().fillna(0)
+    tmp = df.reset_index() #.fillna(0)
     source = ColumnDataSource(tmp)
     # TBD: add a check of the type of the index
     if is_datetime(df.index):
