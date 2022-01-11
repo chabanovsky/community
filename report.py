@@ -46,20 +46,18 @@ DEFINE = ""
 def init(defs):
     global DEFINE
     DEFINE = defs
-    if "colab" in DEFINE:
-        from google.colab import widgets    
-
-    else:
-        import ipywidgets as widgets
 
 def tabbar(params):
+    global DEFINE
     if "colab" in DEFINE:
+        from google.colab import widgets    
         tb = widgets.TabBar(list(params.keys()))
         for index, key in enumerate(params.keys()):
             with tb.output_to(index):
                 f, f_args = params[key]
                 f(*f_args)
     else:
+        import ipywidgets as widgets
         tabs = [widgets.Output() for _ in params.keys()]
         bar = widgets.Tab(children = tabs)
         for index, key in enumerate(params.keys()):
