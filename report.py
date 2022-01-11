@@ -42,23 +42,29 @@ def create_download_link(df, title = "Download CSV file", filename = "data.csv")
     html = html.format(payload=payload, title=title, filename=filename)
     return HTML(html)
 
-if 'DEFINE' in globals() and "colab" in DEFINE:
-    from google.colab import widgets
-    def tabbar(params):
+DEFINE = ""
+def init(defs):
+    global DEFINE
+    DEFINE = defs
+    if "colab" in DEFINE:
+        from google.colab import widgets    
+
+    else:
+        import ipywidgets as widgets
+
+def tabbar(params):
+    if "colab" in DEFINE:
         tb = widgets.TabBar(list(params.keys()))
         for index, key in enumerate(params.keys()):
             with tb.output_to(index):
                 f, f_args = params[key]
                 f(*f_args)
-else:
-    import ipywidgets as widgets
-    def tabbar(params):
+    else:
         tabs = [widgets.Output() for _ in params.keys()]
         bar = widgets.Tab(children = tabs)
         for index, key in enumerate(params.keys()):
             bar.set_title(index, key)
-        display(bar)
-        
+        display(bar)        
         for index, key in enumerate(params.keys()):
             with tabs[index]:
                 f, f_args = params[key]
