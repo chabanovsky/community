@@ -158,14 +158,7 @@ def plot_df(df, title, xlabel, ylabel, stacked=False, need_table=True, location=
     if PLOT_MATPLOTLIB:
         plot_matplotlib_(df, title, xlabel, ylabel, stacked)
     else:
-        plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location)
-
-def read_csvs_in_folder(source_folder):
-    files = [os.path.join(source_folder, f)  for f in os.listdir(source_folder) if re.match(r'.*.csv', f)] 
-    if len(files) == 1:
-        pd.read_csv(files[0])
-    dfs = [pd.read_csv(file_) for file_ in files]
-    return pd.concat(dfs)        
+        plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location)   
 
 def scatter_plot(data_to_display, title, xlabel, ylabel, hover_tooltips, x, y, text):
     def scatter_plot_helper(p, df, x, y, marker, fill_color, text):
