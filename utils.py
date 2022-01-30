@@ -11,7 +11,7 @@ from scipy.stats import chisquare
 def read_csvs_in_folder(source_folder):
     files = [os.path.join(source_folder, f)  for f in os.listdir(source_folder) if re.match(r'.*.csv', f)] 
     if len(files) == 1:
-        pd.read_csv(files[0])
+        return pd.read_csv(files[0])
     dfs = [pd.read_csv(file_) for file_ in files]
     return pd.concat(dfs)     
 
