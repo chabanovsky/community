@@ -9,6 +9,7 @@ import numpy as np
 
 from pandas.api.types import is_datetime64_any_dtype as is_datetime
 
+import datetime
 import base64
 import matplotlib.pyplot as plt
 from IPython.display import HTML    
@@ -137,21 +138,7 @@ def plot_bokeh_(df, title, xlabel, ylabel, stacked, need_table, location="top_le
     show(p)
 
     if need_table:
-        columns = list()
-        for index, column in enumerate(list(tmp.columns.values)):
-            if column == df.index.name: 
-                columns.append(
-                    TableColumn(field=column, title=column, formatter=DateFormatter())
-                ) 
-            else:
-                columns.append(
-                    TableColumn(field=column, title=column)
-                )
-
-        data_table = DataTable(source=source, columns=columns, width=PLOT_WIDTH, height=PLOT_HEIGHT)
-        show(widgetbox(data_table))
-
-        display(create_download_link(tmp))
+        print_table(df)
 
 PLOT_MATPLOTLIB=False
 def plot_df(df, title, xlabel, ylabel, stacked=False, need_table=True, location="top_left"):
@@ -187,4 +174,49 @@ def scatter_plot(data_to_display, title, xlabel, ylabel, hover_tooltips, x, y, t
     p.yaxis.axis_label = ylabel
     p.left[0].formatter.use_scientific = False
     p.below[0].formatter.use_scientific = False
+    show(p)
+
+
+def print_table(df):
+    tmp = df.reset_index()
+    source = ColumnDataSource(tmp)
+    columns = list()
+    for index, column in enumerate(list(tmp.columns.values)):
+        if column == df.index.name: 
+            columns.append(
+                TableColumn(field=column, title=column, formatter=DateFormatter())
+            ) 
+        else:
+            columns.append(
+                TableColumn(field=column, title=column)
+            )
+
+    data_table = DataTable(source=source, columns=columns, width=PLOT_WIDTH, height=PLOT_HEIGHT)
+    show(widgetbox(data_table))
+    display(create_download_link(tmp))
+
+def t_stacked_bars(df, stack_params, title, width, location="top_left", orientation="horizontal"):
+    colors = ["#718dbf", "#e84d60"]
+    if len(stack_params) > 2:
+        colors = brewer['Spectral'][len(stack_params)]
+    
+    data = {
+        'Date': df.index
+    }
+    for param in stack_params:
+        data[param] = df[param]
+
+    p = figure(plot_height=PLOT_HEIGHT, plot_width=PLOT_WIDTH, title=title,
+              toolbar_location=None, tools="hover", tooltips="$name: @$name", x_axis_type="datetime")
+
+    p.vbar_stack(stack_params, x='Date', width=datetime.timedelta(days=width), color=colors, source=data, legend_label=stack_params)
+
+    p.y_range.start = 0
+    p.x_range.range_padding = 0.1
+    p.xgrid.grid_line_color = None
+    p.axis.minor_tick_line_color = None
+    p.outline_line_color = None
+    p.legend.location = location
+    p.legend.orientation = orientation
+
     show(p)
