@@ -122,7 +122,7 @@ class MainSiteData:
         )        
 
 class MetaData:
-    def __init__(self, spreadsheet_id, db_name, questions_in_the_series, project_path_prefix=project_path_prefix):
+    def __init__(self, spreadsheet_id, db_name, questions_in_the_series, project_path_prefix):
         self.spreadsheet_id = spreadsheet_id
         self.questions_in_the_series = questions_in_the_series
         self.project_folder = "%s/%s" % (project_path_prefix, db_name)
