@@ -1,19 +1,7 @@
-import os
-import csv
-import sys
 import re
 
 import pandas as pd
 import numpy as np
-import scipy.stats as stats
-from dateutil.relativedelta import relativedelta
-from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import math
-
-from __future__ import print_function
-from IPython.display import HTML
-import pylab as pl
 
 from bokeh.io import show
 from bokeh.models import ColumnDataSource, FactorRange
