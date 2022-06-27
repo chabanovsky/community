@@ -391,7 +391,7 @@ class QuestionFeedback:
             print("- %s: %d" % (theme, cnt))
 
 
-    def domain_experts(self):
+    def domain_experts(self, domain_actions_threshold):
 
         the_date = self.meta_site.posts[self.meta_site.posts["Id"] == self.question_id]["CreationDate"].values[0]
 
@@ -437,8 +437,6 @@ class QuestionFeedback:
         print(" - Very engaged: %d" % (len(very_engaged_meta.index)))
         print(" - Core: %d" % (len(core_meta.index)))
 
-        ##############################################################################
-
         positive_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "positive"]["OwnerUserId"].values.tolist()
         negative_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "negative"]["OwnerUserId"].values.tolist()
         neutral_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "neutral"]["OwnerUserId"].values.tolist()
@@ -446,8 +444,6 @@ class QuestionFeedback:
         positive_ids = list(set(positive_answer_users))
         negative_ids = list(set(negative_answer_users))
         neutral_ids = list(set(neutral_answer_users))
-
-        domain_actions_threshold = 10 #@param {type:"slider", min:1, max:50, step:1}
 
         def print_domain_experts_reach(df, active_users, domain_actions_threshold, field, title, positive_ids, negative_ids, neutral_ids):
             tmp = active_users[active_users[field] >= domain_actions_threshold]
