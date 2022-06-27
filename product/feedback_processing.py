@@ -2,13 +2,14 @@ import re
 
 import pandas as pd
 import numpy as np
+from dateutil.relativedelta import relativedelta
+from datetime import datetime, timedelta
 
 from bokeh.io import show
 from bokeh.models import ColumnDataSource, FactorRange
 from bokeh.plotting import figure
-from bokeh.transform import factor_cmap
 from bokeh.palettes import Spectral5
-from bokeh.settings import convert_str
+
 
 import bokeh.io
 bokeh.io.output_notebook()
@@ -338,11 +339,167 @@ class Grader:
 
 ###############################################################################
 
-class QuestionVisualFeedback:
-    def __init__(self, question_id, data):
+class QuestionFeedback:
+    def __init__(self, main_site, meta_site, question_id):
         self.question_id = question_id
-        self.all_data = data
-        self.q_data = data.all_feedback[data.all_feedback["ParentId"] == question_id]
+        self.meta_site = meta_site
+        self.main_site = main_site
+        self.q_data = meta_site.all_feedback[meta_site.all_feedback["ParentId"] == question_id]
+
+    def themes(self, n_top=3):
+        def _get_themes(df, question_id, mood):
+            feedback = df[(df["QuestionId"] == question_id) & (df["Mood"] == mood)]
+            tmp = feedback.groupby(by=["Theme"])["AnswerId"].count().rename("ThemeCount").to_frame().reset_index()
+            tmp = tmp.sort_values(by=["ThemeCount"], ascending=False)
+            result = list()
+            for _, row in tmp.iterrows():
+                result.append((row["Theme"], row["ThemeCount"]))
+            return result
+
+        def _get_top_themes(df, question_id, n):
+            feedback = df[df["QuestionId"] == question_id]
+            tmp = feedback.groupby(by=["Theme"])["AnswerId"].count().rename("ThemeCount").to_frame().reset_index()
+            return tmp.sort_values(by=["ThemeCount"], ascending=False).head(n)["Theme"].unique().tolist()
+
+        top = _get_top_themes(self.meta_site.all_feedback, self.question_id, n_top)
+        positive = _get_themes(self.meta_site.all_feedback, self.question_id, "positive")
+        neutral = _get_themes(self.meta_site.all_feedback, self.question_id, "neutral")
+        negative = _get_themes(self.meta_site.all_feedback, self.question_id, "negative")
+
+        return top, positive, neutral, negative
+
+    def print_theme_stats(self, n_top=3):
+        top, positive, neutral, negative = self.themes(n_top)
+        top_str = ""
+        for theme in top:
+            if len(top_str) > 0:
+                top_str += ","
+            top_str += " %s" % theme
+
+        print("Top themes: %s" % (top_str))
+
+        print("Positive")
+        for (theme, cnt) in positive:
+            print("- %s: %d" % (theme, cnt))
+
+        print("Negative")
+        for (theme, cnt) in negative:
+            print("- %s: %d" % (theme, cnt))
+
+        print("Neutural")
+        for (theme, cnt) in neutral:
+            print("- %s: %d" % (theme, cnt))
+
+
+    def domain_experts(self):
+
+        the_date = self.meta_site.posts[self.meta_site.posts["Id"] == self.question_id]["CreationDate"].values[0]
+
+        ts = pd.to_datetime(str(the_date)) 
+        threshold = ts - relativedelta(months=1)
+
+        tmp = self.main_site.actions[(self.main_site.actions["OnDate"] > threshold) & (so.actions["OnDate"] < ts)]
+        # Lest us check that we are looking at only one month of data.
+        # If we want to do it for a longer period
+        # we will need to redo the logic with EngagementPoints
+
+        assert(tmp["OnDate"].nunique() == 1)
+
+        active_users = tmp
+        engaged_users = tmp[tmp["EngagementPoints"] >= 1]
+        very_engaged_users = tmp[tmp["EngagementPoints"] >= 10]
+        core_users = tmp[tmp["EngagementPoints"] >= 100]
+
+        print("Engaged users on the main site on the month prior posting the announcement:")
+        print("- Active: %d" % (len(active_users.index)))
+        print("- Engaged: %d (%0.2f%%)" % (len(engaged_users.index), float(len(engaged_users.index))/len(active_users.index) * 100))
+        print("- Very engaged: %d (%0.2f%%)" % (len(very_engaged_users.index), float(len(very_engaged_users.index))/len(active_users.index) * 100))
+        print("- Core: %d (%0.2f%%)" % (len(core_users.index), float(len(core_users.index))/len(active_users.index) * 100))
+
+        # Collecting all actions on the target question
+        answers_df = self.meta_site.posts[self.meta_site.posts["ParentId"] == self.question_id]
+        posts_ids = answers_df["Id"].unique().tolist() + [self.question_id]
+        post_votes_df = self.meta_site.post_votes[self.meta_site.post_votes["PostId"].isin(posts_ids)]
+        comments_df = self.meta_site.comments[self.meta_site.comments["PostId"].isin(posts_ids)]
+        commnet_votes_df = self.meta_site.comment_votes[self.meta_site.comment_votes["PostCommentId"].isin(comments_df["Id"])]
+
+        # TBD: Remove employees!
+        participants_ids = list(set(answers_df["OwnerUserId"].values.tolist() + post_votes_df["UserId"].values.tolist() + comments_df["UserId"].values.tolist() + commnet_votes_df["UserId"].values.tolist()))
+
+        active_meta = active_users[active_users["UserId"].isin(participants_ids)]
+        engaged_meta = engaged_users[engaged_users["UserId"].isin(participants_ids)]
+        very_engaged_meta = very_engaged_users[very_engaged_users["UserId"].isin(participants_ids)]
+        core_meta = core_users[core_users["UserId"].isin(participants_ids)]
+
+        print("Users that somehow acted on the meta post (%d total):" % (len(participants_ids)))
+        print(" - Active: %d" % (len(active_meta.index)))
+        print(" - Engaged: %d" % (len(engaged_meta.index)))
+        print(" - Very engaged: %d" % (len(very_engaged_meta.index)))
+        print(" - Core: %d" % (len(core_meta.index)))
+
+        ##############################################################################
+
+        positive_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "positive"]["OwnerUserId"].values.tolist()
+        negative_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "negative"]["OwnerUserId"].values.tolist()
+        neutral_answer_users = self.meta_site.all_feedback[self.meta_site.all_feedback["Mood"] == "neutral"]["OwnerUserId"].values.tolist()
+
+        positive_ids = list(set(positive_answer_users))
+        negative_ids = list(set(negative_answer_users))
+        neutral_ids = list(set(neutral_answer_users))
+
+        domain_actions_threshold = 10 #@param {type:"slider", min:1, max:50, step:1}
+
+        def print_domain_experts_reach(df, active_users, domain_actions_threshold, field, title, positive_ids, negative_ids, neutral_ids):
+            tmp = active_users[active_users[field] >= domain_actions_threshold]
+            print("%d active %s have participated (all actions) in the post (%0.2f%% of all active %s on the main site)." % (
+                df[df[field] >= domain_actions_threshold]["UserId"].nunique(),
+                title.lower(), 
+                100 * (df[df[field] >= domain_actions_threshold]["UserId"].nunique() / float(tmp["UserId"].nunique())),
+                title.lower()
+            ))
+
+            tmp = df[df[field] >= domain_actions_threshold]
+            all = tmp[tmp["UserId"].isin(set(positive_ids + negative_ids + neutral_ids))]["UserId"].unique()
+            print("%s' answers (total users %d):" % (title, len(all)))
+            
+            pos = tmp[tmp["UserId"].isin(positive_ids)]["UserId"].unique()
+            print("- Positive: %d " % (len(pos)))
+            neg = tmp[tmp["UserId"].isin(negative_ids)]["UserId"].unique()
+            print("- Negative: %d " % (len(neg)))
+            neu = tmp[tmp["UserId"].isin(neutral_ids)]["UserId"].unique()
+            print("- Neutral: %d " % (len(neu)))    
+
+
+        # TBD:  Currently we are looking at the last month experts
+        #       It seems we should include a bigger period
+
+        print("\r\n\r\nDomain experts that have been active on the main site one month prior the announcement\r\n")
+        print_domain_experts_reach(
+            active_meta, 
+            active_users, 
+            domain_actions_threshold, 
+            "Reviews", "Reviewers", 
+            positive_ids, negative_ids, 
+            neutral_ids
+        )
+        print("\r\n")
+        print_domain_experts_reach(
+            active_meta, 
+            active_users, 
+            domain_actions_threshold, 
+            "Answers", "Answer givers", 
+            positive_ids, negative_ids, 
+            neutral_ids
+        )
+        print("\r\n")
+        print_domain_experts_reach(
+            active_meta, 
+            active_users, 
+            domain_actions_threshold, 
+            "Edits", "Editors", 
+            positive_ids, negative_ids, 
+            neutral_ids
+        )            
 
     def responses_on_scatter_plot(self, df=None, coef=70):
         def _dfs(data, coef=70):
@@ -386,10 +543,9 @@ class QuestionVisualFeedback:
             _yaxis(),
             "DisplayName")  
         
-
 ###############################################################################
 
-class SeriesVisualization:
+class SeriesFeedback:
     def __init__(self, data):
         self.data = data
         self.posts = data.posts[(data.posts["Id"].isin(data.questions_in_the_series)) | (data.posts["ParentId"].isin(data.questions_in_the_series))]
