@@ -398,7 +398,7 @@ class QuestionFeedback:
         ts = pd.to_datetime(str(the_date)) 
         threshold = ts - relativedelta(months=1)
 
-        tmp = self.main_site.actions[(self.main_site.actions["OnDate"] > threshold) & (so.actions["OnDate"] < ts)]
+        tmp = self.main_site.actions[(self.main_site.actions["OnDate"] > threshold) & (self.main_site.actions["OnDate"] < ts)]
         # Lest us check that we are looking at only one month of data.
         # If we want to do it for a longer period
         # we will need to redo the logic with EngagementPoints
