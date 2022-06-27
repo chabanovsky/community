@@ -766,6 +766,55 @@ class SeriesFeedback:
         p.xgrid.grid_line_color = None
         show(p)
 
+    def new_users(self):
+        question_users = list()
+        for question_id in sorted(self.data.questions_in_the_series, reverse=False):
+            post_ids = self.data.posts[self.data.posts["ParentId"] == question_id]["Id"].values.tolist()
+            answer_givers = self.data.posts[self.data.posts["Id"].isin(post_ids)]["OwnerUserId"].values.tolist()
+            post_voters = self.data.post_votes[self.data.post_votes["PostId"].isin(post_ids + [question_id])]["UserId"].values.tolist()
+            comments = self.data.comments[self.data.comments["PostId"].isin(post_ids + [question_id])]
+            commenters = comments["UserId"].values.tolist()
+            comment_voters = self.data.comment_votes[self.data.comment_votes["PostCommentId"].isin(comments["Id"])]["UserId"].values.tolist()
+            all_users = answer_givers + commenters + post_voters + comment_voters
+            question_users.append((question_id, all_users))
+
+        questions = list()
+        new_values = list()
+        total_values = list()
+        all_past_users = set()
+        for (question, users) in question_users:
+            current_users = list(set(users) - all_past_users)
+            all_past_users = set(list(all_past_users) + current_users)
+
+            questions.append(question)
+            new_values.append(len(current_users))
+            total_values.append(len(set(users)))
+
+        serial_numbers = ["Q #%d" % index for index in range(1, len(questions) + 1)]
+        metrics = ['Total', 'New']
+
+        col_data = {
+            'SerialNumbers': serial_numbers,
+            'Total': total_values,
+            'New': new_values
+        }
+
+        # this creates [ ("Apples", "2015"), ("Apples", "2016"), ("Apples", "2017"), ("Pears", "2015), ... ]
+        x = [ (number, metric) for number in serial_numbers for metric in metrics]
+        counts = sum(zip(col_data['Total'], col_data['New']), ()) # like an hstack
+        source = ColumnDataSource(data=dict(x=x, counts=counts))
+        p = figure(
+            x_range=FactorRange(*x), 
+            height=report.PLOT_HEIGHT, 
+            width=report.PLOT_WIDTH, 
+            title="Number of new users participated in a question"
+        )
+        p.vbar(x='x', top='counts', width=0.9, source=source)
+
+        p.x_range.range_padding = 0.1
+        p.xaxis.major_label_orientation = 1
+        p.xgrid.grid_line_color = None
+        show(p)
 
     def _comment_voters(self, comment_id):
         return self.comment_votes[self.comment_votes["PostCommentId"] == comment_id]["UserId"].values.tolist()
